@@ -34,14 +34,11 @@ const App = () => {
         (person) =>
           person.name.trim().toLowerCase() === event.name.trim().toLowerCase()
       );
-      console.log(person);
 
       const changedNumber = {
         ...person,
         number: event.number.trim().toUpperCase(),
       };
-
-      console.log(changedNumber);
 
       ContactService.update(changedNumber.id, changedNumber)
         .then((returnedPerson) => {
