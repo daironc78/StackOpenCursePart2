@@ -5,13 +5,15 @@ import SearchContact from "./components/searchContact/searchContact";
 import axios from "axios";
 import "./App.css";
 
+const BASE_URL = "http://localhost:3001/persons";
+
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [filterPerson, setFilterPersons] = useState("");
 
   useEffect(() => {
     axios
-      .get("http://localhost:3001/persons")
+      .get(BASE_URL)
       .then((response) => {
         setPersons(response.data);
         console.log("PromiseContacts", response.data);
@@ -40,7 +42,9 @@ const App = () => {
       number: event.number.trim(),
     };
 
-    setPersons(persons.concat(personObject));
+    axios.post(BASE_URL, personObject).then((response) => {
+      setPersons(persons.concat(response.data));
+    });
   };
 
   const personsToShow = (event) => {
