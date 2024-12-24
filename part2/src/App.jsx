@@ -3,12 +3,15 @@ import Contacts from "./components/contacts/Contacts";
 import AddContacts from "./components/addContact/AddContacts";
 import SearchContact from "./components/searchContact/searchContact";
 import ContactService from "./services/ContactService";
+import Notification from "./components/notification/Notification";
 
 import "./App.css";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [filterPerson, setFilterPersons] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [statusMessage, setStatusMessage] = useState(true);
 
   useEffect(() => {
     ContactService.getAll().then((initialPersons) => {
@@ -47,14 +50,19 @@ const App = () => {
               person.id !== changedNumber.id ? person : returnedPerson
             )
           );
+          messageShow({
+            message: `Updated ${returnedPerson.name}`,
+            status: true,
+          });
         })
         .catch((error) => {
-          alert(
-            `the contact '${event.name.trim()}' was already deleted from server`
-          );
           setPersons(
             persons.filter((person) => person.id !== changedNumber.id)
           );
+          messageShow({
+            message: `the contact '${event.name.trim()}' was already deleted from server`,
+            status: false,
+          });
         });
     } else {
       const personObject = {
@@ -63,9 +71,21 @@ const App = () => {
         number: event.number.trim().toUpperCase(),
       };
 
-      ContactService.create(personObject).then((returnedPerson) => {
-        setPersons(persons.concat(returnedPerson));
-      });
+      ContactService.create(personObject)
+        .then((returnedPerson) => {
+          setPersons(persons.concat(returnedPerson));
+          messageShow({
+            message: `Added ${returnedPerson.name}`,
+            status: true,
+          });
+        })
+        .catch((error) => {
+          messageShow({
+            message: `Create failed for ${event.name.trim()}`,
+            status: false,
+          });
+          setPersons(persons);
+        });
     }
   };
 
@@ -77,15 +97,35 @@ const App = () => {
     ContactService.deleted(id)
       .then((returnedPerson) => {
         setPersons(persons.filter((person) => person.id !== id));
+        messageShow({
+          message: "Deleted",
+          status: true,
+        });
       })
       .catch((error) => {
-        alert(`the contact '${id}' was already deleted from server`);
+        messageShow({
+          message: `the contact '${id}' was already deleted from server`,
+          status: false,
+        });
         setPersons(persons.filter((person) => person.id !== id));
       });
   };
 
+  const messageShow = ({ message, status }) => {
+    setErrorMessage(message);
+    setStatusMessage(status);
+
+    setTimeout(() => {
+      setErrorMessage(null);
+    }, 5000);
+  };
+
   return (
     <div>
+      <div>
+        <h2>Phonebook</h2>
+        <Notification message={errorMessage} status={statusMessage} />
+      </div>
       <SearchContact searchContact={personsToShow} />
       <hr />
       <AddContacts addPerson={addPerson} />
