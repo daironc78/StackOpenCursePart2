@@ -2,53 +2,89 @@ import { useState, useEffect } from "react";
 import Contacts from "./components/contacts/Contacts";
 import AddContacts from "./components/addContact/AddContacts";
 import SearchContact from "./components/searchContact/searchContact";
-import axios from "axios";
-import "./App.css";
+import ContactService from "./services/ContactService";
 
-const BASE_URL = "http://localhost:3001/persons";
+import "./App.css";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [filterPerson, setFilterPersons] = useState("");
 
   useEffect(() => {
-    axios
-      .get(BASE_URL)
-      .then((response) => {
-        setPersons(response.data);
-        console.log("PromiseContacts", response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
+    ContactService.getAll().then((initialPersons) => {
+      setPersons(initialPersons);
+    });
   }, []);
 
   const addPerson = (event) => {
-    console.log("addContact", event);
-
     if (
       persons.some(
         (person) =>
           person.name.toLowerCase() === event.name.trim().toLowerCase()
       )
     ) {
-      alert(`${event.name} is already added to phonebook`);
-      return;
+      if (
+        !window.confirm(
+          `${event.name} is already added to phonebook, replace the old number with a new one?`
+        )
+      )
+        return;
+
+      const person = persons.find(
+        (person) =>
+          person.name.trim().toLowerCase() === event.name.trim().toLowerCase()
+      );
+      console.log(person);
+
+      const changedNumber = {
+        ...person,
+        number: event.number.trim().toUpperCase(),
+      };
+
+      console.log(changedNumber);
+
+      ContactService.update(changedNumber.id, changedNumber)
+        .then((returnedPerson) => {
+          setPersons(
+            persons.map((person) =>
+              person.id !== changedNumber.id ? person : returnedPerson
+            )
+          );
+        })
+        .catch((error) => {
+          alert(
+            `the contact '${event.name.trim()}' was already deleted from server`
+          );
+          setPersons(
+            persons.filter((person) => person.id !== changedNumber.id)
+          );
+        });
+    } else {
+      const personObject = {
+        id: (persons.length + 1).toString(),
+        name: event.name.trim(),
+        number: event.number.trim().toUpperCase(),
+      };
+
+      ContactService.create(personObject).then((returnedPerson) => {
+        setPersons(persons.concat(returnedPerson));
+      });
     }
-
-    const personObject = {
-      id: persons.length + 1,
-      name: event.name.trim(),
-      number: event.number.trim(),
-    };
-
-    axios.post(BASE_URL, personObject).then((response) => {
-      setPersons(persons.concat(response.data));
-    });
   };
 
   const personsToShow = (event) => {
     setFilterPersons(event);
+  };
+
+  const toggleDeleteOf = (id) => {
+    ContactService.deleted(id)
+      .then((returnedPerson) => {
+        setPersons(persons.filter((person) => person.id !== id));
+      })
+      .catch((error) => {
+        alert(`the contact '${id}' was already deleted from server`);
+        setPersons(persons.filter((person) => person.id !== id));
+      });
   };
 
   return (
@@ -57,7 +93,11 @@ const App = () => {
       <hr />
       <AddContacts addPerson={addPerson} />
       <hr />
-      <Contacts persons={persons} filterPerson={filterPerson} />
+      <Contacts
+        persons={persons}
+        filterPerson={filterPerson}
+        toggleDelete={toggleDeleteOf}
+      />
     </div>
   );
 };
