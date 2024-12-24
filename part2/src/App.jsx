@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import Notification from "./components/notification/Notificaton";
 import Note from "./components/notes/Notes";
 import noteService from "./services/notes";
 import "./App.css";
@@ -10,6 +10,23 @@ const App = () => {
   const [showAll, setShowAll] = useState(true);
 
   const notesToShow = showAll ? notes : notes.filter((note) => note.important);
+  const [errorMessage, setErrorMessage] = useState("some error happened...");
+
+  const Footer = () => {
+    const footerStyle = {
+      color: "green",
+      fontStyle: "italic",
+      fontSize: 16,
+    };
+    return (
+      <div style={footerStyle}>
+        <br />
+        <em>
+          Note app, Department of Computer Science, University of Helsinki 2024
+        </em>
+      </div>
+    );
+  };
 
   useEffect(() => {
     noteService.getAll().then((initialNotes) => {
@@ -45,7 +62,12 @@ const App = () => {
         setNotes(notes.map((note) => (note.id !== id ? note : returnedNote)));
       })
       .catch((error) => {
-        alert(`the note '${note.content}' was already deleted from server`);
+        setErrorMessage(
+          `Note '${note.content}' was already removed from server`
+        );
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 5000);
         setNotes(notes.filter((n) => n.id !== id));
       });
   };
@@ -53,7 +75,7 @@ const App = () => {
   return (
     <div>
       <h1>Notes</h1>
-
+      <Notification message={errorMessage} />
       <div>
         <button onClick={() => setShowAll(!showAll)}>
           show {showAll ? "important" : "all"}
@@ -79,6 +101,7 @@ const App = () => {
         </div>
         <button type="submit">save</button>
       </form>
+      <Footer />
     </div>
   );
 };
