@@ -10,7 +10,7 @@ const App = () => {
   const [showAll, setShowAll] = useState(true);
 
   const notesToShow = showAll ? notes : notes.filter((note) => note.important);
-  const [errorMessage, setErrorMessage] = useState("some error happened...");
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const Footer = () => {
     const footerStyle = {
@@ -40,6 +40,8 @@ const App = () => {
 
   const addNote = (event) => {
     event.preventDefault();
+    console.log("button clicked", newNote);
+    
     const noteObject = {
       content: newNote,
       important: Math.random() < 0.5,
