@@ -40,7 +40,7 @@ const App = () => {
 
       const changedNumber = {
         ...person,
-        number: event.number.trim().toUpperCase(),
+        phone: event.number.trim().toUpperCase(),
       };
 
       ContactService.update(changedNumber.id, changedNumber)
@@ -68,7 +68,7 @@ const App = () => {
       const personObject = {
         id: (persons.length + 1).toString(),
         name: event.name.trim(),
-        number: event.number.trim().toUpperCase(),
+        phone: event.number.trim().toUpperCase(),
       };
 
       ContactService.create(personObject)

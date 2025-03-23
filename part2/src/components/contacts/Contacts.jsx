@@ -9,7 +9,7 @@ const Contacts = ({ persons, filterPerson, toggleDelete }) => {
           )
           .map((filteredPerson) => (
             <li key={filteredPerson.id}>
-              {filteredPerson.name} - {filteredPerson.number} -{" "}
+              {filteredPerson.name} - {filteredPerson.phone} -{" "}
               <button onClick={() => toggleDelete(filteredPerson.id)}>
                 Delete
               </button>
